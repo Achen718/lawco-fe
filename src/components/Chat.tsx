@@ -19,7 +19,7 @@ export function ChatComponent() {
       if (!token) {
         // If not, log in automatically with your static credentials
         console.log('No token found, logging in automatically...');
-        token = await login('achen', '123A45b6c!');
+        token = await login('achen', 'Test123!');
       }
 
       // If we have a token (either from storage or after auto-login), connect
