@@ -1,8 +1,10 @@
-interface ConversationDisplayProps {
-  messages: any[];
+import { Message } from '@/types/chat';
+
+interface ChatDisplayProps {
+  messages: Message[];
 }
 
-export const ChatDisplay = ({ messages }: ConversationDisplayProps) => {
+export const ChatDisplay = ({ messages }: ChatDisplayProps) => {
   return (
     <div className='flex-1 overflow-y-auto p-4 space-y-2'>
       {messages.length === 0 ? (
@@ -39,6 +41,20 @@ export const ChatDisplay = ({ messages }: ConversationDisplayProps) => {
                     </div>
                   )}
                 </div>
+
+                {/* Display uploaded files */}
+                {msg.files && msg.files.length > 0 && (
+                  <div className='mt-2 flex flex-wrap gap-2'>
+                    {msg.files.map((file, fileIndex: number) => (
+                      <div
+                        key={fileIndex}
+                        className='inline-flex items-center px-2 py-1 rounded text-xs bg-gray-200 text-gray-700'
+                      >
+                        📎 {file.name || file.original_name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           );

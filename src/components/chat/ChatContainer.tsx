@@ -3,14 +3,31 @@ import { useState, useEffect } from 'react';
 import { login, getToken } from '@/services/authService';
 import { websocketManager } from '@/services/websocketService';
 import { getDefaultModel, ModelConfig } from '@/services/modelService';
-import { ConversationDisplay } from './ChatDisplay';
-import { MessageInput } from './ChatInput';
+import { uploadFile, FileUploadResult } from '@/services/fileUploadService';
+import { ChatDisplay } from './ChatDisplay';
+import { ChatInput } from './ChatInput';
+import { Message } from '@/types/chat';
+
+interface UploadResult {
+  id: string;
+  name: string;
+}
+
+interface FileMetadata {
+  name: string;
+  type: string;
+  size: number;
+}
 
 export function ChatContainer() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [modelConfig, setModelConfig] = useState<ModelConfig | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Record<string, FileMetadata>
+  >({});
 
   // Effect to automatically log in and connect to WebSocket on component mount
   useEffect(() => {
@@ -75,8 +92,32 @@ export function ChatContainer() {
     autoLoginAndConnect();
   }, []); // The empty dependency array ensures this runs only once on mount
 
-  const handleSendMessage = (input: string) => {
-    if (input.trim() && modelConfig) {
+  const handleFileUpload = async (file: File): Promise<UploadResult> => {
+    setIsUploading(true);
+    try {
+      const uploadResult: FileUploadResult = await uploadFile(file);
+
+      // Store file metadata
+      setUploadedFiles((prev) => ({
+        ...prev,
+        [uploadResult.id]: {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        },
+      }));
+
+      // Return object with id and name
+      return { id: uploadResult.id, name: file.name };
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSendMessage = async (input: string, fileIds?: string[]) => {
+    if ((input.trim() || fileIds?.length) && modelConfig) {
       // Validate that we have the required fields
       if (!modelConfig.provider || !modelConfig.model) {
         console.error('Model configuration is incomplete:', modelConfig);
@@ -84,16 +125,24 @@ export function ChatContainer() {
       }
 
       // Add user's message to UI immediately for better UX
-      setMessages([
-        ...messages,
-        { type: 'user_message', response: { response: { response: input } } },
-      ]);
+      const userMessage = {
+        type: 'user_message',
+        response: { response: { response: input } },
+        files: fileIds?.map((fileId) => ({
+          id: fileId,
+          name: uploadedFiles[fileId]?.name || fileId,
+          size: uploadedFiles[fileId]?.size || 0,
+        })),
+      };
 
-      // Send message in the same format as ChatArea.tsx
+      setMessages((prevMessages) => [...prevMessages, userMessage]);
+
+      // Send message with file IDs (matching genai-agentos format)
       const messageToSend = {
         message: input,
-        llm_name: modelConfig.name, // Use config name, not model field
+        llm_name: modelConfig.name,
         provider: modelConfig.provider,
+        ...(fileIds && fileIds.length > 0 && { files: fileIds }),
       };
 
       console.log('Sending message with payload:', messageToSend);
@@ -102,6 +151,8 @@ export function ChatContainer() {
       console.log(
         'Cannot send message - input:',
         input.trim(),
+        'fileIds:',
+        fileIds?.length,
         'modelConfig:',
         modelConfig
       );
@@ -139,10 +190,12 @@ export function ChatContainer() {
 
   return (
     <div className='flex flex-col h-full'>
-      <ConversationDisplay messages={messages} />
-      <MessageInput
+      <ChatDisplay messages={messages} />
+      <ChatInput
         onSendMessage={handleSendMessage}
+        onFileUpload={handleFileUpload}
         disabled={!modelConfig}
+        isUploading={isUploading}
         placeholder={
           modelConfig
             ? 'Ask the agent anything...'
