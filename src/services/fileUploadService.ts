@@ -152,14 +152,3 @@ export const fileService = {
     return response.data;
   },
 };
-
-// Legacy function for backward compatibility
-export async function uploadFile(
-  file: File
-): Promise<{ id: string; name: string }> {
-  const fileId = await fileService.uploadFile(file);
-  return {
-    id: fileId,
-    name: file.name,
-  };
-}
