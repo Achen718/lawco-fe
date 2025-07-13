@@ -138,7 +138,7 @@ export const fileService = {
     return response.data;
   },
 
-  async getFilesByRequestId(sessionId: string) {
+  async getFilesBySessionId(sessionId: string) {
     const response = await apiService.get<FileData[]>('/files', {
       params: {
         session_id: sessionId,
