@@ -41,8 +41,20 @@ export function ChatContainer() {
         if (!user) {
           console.log('No user found, attempting auto-login...');
           // Input your credentials for AgentOS - change to your own credentials
-          user = await authService.login('achen', '123A45b6c!');
-          console.log('Auto-login successful:', user);
+          if (
+            process.env.NEXT_PUBLIC_AUTH_USERNAME &&
+            process.env.NEXT_PUBLIC_AUTH_PASSWORD
+          ) {
+            user = await authService.login(
+              process.env.NEXT_PUBLIC_AUTH_USERNAME,
+              process.env.NEXT_PUBLIC_AUTH_PASSWORD
+            );
+            console.log('Auto-login successful:', user);
+          } else {
+            console.error(
+              'Missing authentication credentials in environment variables'
+            );
+          }
         }
 
         // If we have a user (either from storage or after auto-login), connect
