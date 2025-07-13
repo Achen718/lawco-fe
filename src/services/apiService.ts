@@ -15,7 +15,7 @@ export interface ApiError {
 }
 
 interface PostOptions extends RequestInit {
-  noStingify?: boolean;
+  noStringify?: boolean;
   isFormData?: boolean;
 }
 
@@ -205,11 +205,11 @@ export class ApiService {
       const response = await this.makeRequest<T>(endpoint, {
         ...options,
         method: 'POST',
-        body: options.noStingify ? (data as BodyInit) : JSON.stringify(data),
+        body: options.noStringify ? (data as BodyInit) : JSON.stringify(data),
         headers: {
           ...options.headers,
           ...(!options.isFormData &&
-            !options.noStingify && { 'Content-Type': 'application/json' }),
+            !options.noStringify && { 'Content-Type': 'application/json' }),
         },
       });
       return response;

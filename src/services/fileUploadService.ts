@@ -95,7 +95,7 @@ export const fileService = {
     }
 
     const response = await apiService.post<{ id: string }>('/files', formData, {
-      noStingify: true,
+      noStringify: true,
       isFormData: true,
     });
 
