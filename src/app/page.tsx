@@ -8,11 +8,16 @@ import {
   Zap,
   ArrowRight,
   User,
+  Github,
 } from "lucide-react";
+import TeamSection from "@/components/TeamSection";
+import TopBanner from "@/components/TopBanner";
+import DemoSection from "@/components/DemoSection";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+      <TopBanner />
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-gray-200 shadow-sm">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,10 +42,26 @@ export default function Home() {
                 How it Works
               </a>
               <a
-                href="#testimonials"
+                href="#team"
                 className="text-gray-600 hover:text-blue-700 transition-colors"
               >
-                Testimonials
+                Team
+              </a>
+              <a
+                href="#action"
+                className="text-gray-600 hover:text-blue-700 transition-colors"
+              >
+                Action
+              </a>
+              <a
+                href="https://github.com/your-org/your-repo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-full text-gray-700 hover:bg-gray-100 transition-colors font-medium text-sm ml-2"
+                aria-label="GitHub Repository"
+              >
+                <Github className="w-5 h-5" />
+                GitHub
               </a>
               <Link
                 href="/chat"
@@ -85,7 +106,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
         {/* How it Works Section */}
         <section id="how" className="py-10 bg-white border-y border-gray-100">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -192,39 +212,26 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-16 bg-white border-t border-gray-100">
+        <DemoSection />
+
+        <section id="team">
+          <TeamSection />
+        </section>
+
+        <section
+          id="action"
+          className="py-16 bg-white border-t border-gray-100"
+        >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Ready to Get Started?
+              Action Section
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Join thousands of users who trust our AI for their legal
-              assistance needs.
+              This is a placeholder for another important section.
             </p>
-            <Link
-              href="/chat"
-              className="inline-flex items-center space-x-2 px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-lg shadow hover:from-blue-700 hover:to-purple-700 transition-all duration-200 mb-8"
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span>Start Your Free Chat</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-8">
-              <div className="flex items-center gap-2 text-green-600 text-base">
-                ✔️ No credit card required
-              </div>
-              <div className="flex items-center gap-2 text-green-600 text-base">
-                ✔️ Free tier available
-              </div>
-              <div className="flex items-center gap-2 text-green-600 text-base">
-                ✔️ Setup in minutes
-              </div>
-            </div>
           </div>
         </section>
       </main>
-
       {/* Footer */}
       <footer className="bg-gray-950 text-gray-200 border-t border-gray-800 pt-12 pb-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

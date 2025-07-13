@@ -7,7 +7,7 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
-  PanelLeft,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useState } from "react";
 // Mock data for right sidebar
@@ -149,7 +149,7 @@ export default function ChatPage() {
               onClick={() => setRightSidebarOpen(false)}
               aria-label="Close right sidebar"
             >
-              <PanelLeft className="w-6 h-6 text-gray-300" />
+              <PanelLeftOpen className="w-6 h-6 text-gray-300" />
             </button>
             <h2 className="text-lg font-semibold mb-4 mt-2">Key Terminology</h2>
             <div className="space-y-4 mt-2">
@@ -172,7 +172,7 @@ export default function ChatPage() {
             onClick={() => setRightSidebarOpen(true)}
             aria-label="Open right sidebar"
           >
-            <PanelLeft className="w-7 h-7 text-gray-300" />
+            <PanelLeftOpen className="w-7 h-7 text-gray-300" />
           </button>
         )}
       </div>
