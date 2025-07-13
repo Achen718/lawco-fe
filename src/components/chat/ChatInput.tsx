@@ -1,13 +1,13 @@
-'use client';
-import { useState, useRef } from 'react';
-import Image from 'next/image';
-import { Paperclip, X, Send } from 'lucide-react';
+"use client";
+import { useState, useRef } from "react";
+import Image from "next/image";
+import { Paperclip, X, Send, Upload, AlertCircle } from "lucide-react";
 import {
   getFileIcon,
   formatFileSize,
   isValidFileType,
   isValidFileSize,
-} from '@/services/fileUploadService';
+} from "@/services/fileUploadService";
 
 interface UploadResult {
   id: string;
@@ -20,6 +20,7 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   isUploading?: boolean;
+  fullScreen?: boolean;
 }
 
 interface AttachedFile {
@@ -35,12 +36,14 @@ export const ChatInput = ({
   onSendMessage,
   onFileUpload,
   disabled = false,
-  placeholder = 'Type your message...',
+  placeholder = "Type your message...",
   isUploading = false,
+  fullScreen = false,
 }: ChatInputProps) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +55,7 @@ export const ChatInput = ({
 
     if ((input.trim() || fileIds.length > 0) && !disabled) {
       onSendMessage(input.trim(), fileIds);
-      setInput('');
+      setInput("");
 
       // Remove successfully sent files, keep failed ones for retry
       setAttachedFiles((prev) =>
@@ -65,7 +68,7 @@ export const ChatInput = ({
     const files = Array.from(e.target.files || []);
 
     if (!onFileUpload) {
-      console.warn('No file upload handler provided');
+      console.warn("No file upload handler provided");
       return;
     }
 
@@ -92,7 +95,7 @@ export const ChatInput = ({
       };
 
       // Create preview for images
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         attachedFile.preview = URL.createObjectURL(file);
       }
 
@@ -123,18 +126,18 @@ export const ChatInput = ({
                   ...file,
                   loading: false,
                   error:
-                    error instanceof Error ? error.message : 'Upload failed',
+                    error instanceof Error ? error.message : "Upload failed",
                 }
               : file
           )
         );
-        console.error('File upload failed:', error);
+        console.error("File upload failed:", error);
       }
     }
 
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -185,12 +188,12 @@ export const ChatInput = ({
             ? {
                 ...file,
                 loading: false,
-                error: error instanceof Error ? error.message : 'Upload failed',
+                error: error instanceof Error ? error.message : "Upload failed",
               }
             : file
         )
       );
-      console.error('File upload retry failed:', error);
+      console.error("File upload retry failed:", error);
     }
   };
 
@@ -199,112 +202,79 @@ export const ChatInput = ({
     input.trim() || attachedFiles.some((file) => file.id && !file.error);
 
   return (
-    <div className='border-t bg-white p-4'>
-      {/* File previews */}
-      {attachedFiles.length > 0 && (
-        <div className='mb-3 flex flex-wrap gap-2'>
-          {attachedFiles.map((attachedFile) => (
-            <div
-              key={attachedFile.clientId}
-              className={`relative inline-flex items-center rounded-lg p-2 max-w-xs ${
-                attachedFile.loading
-                  ? 'bg-blue-100 border-2 border-blue-300'
-                  : attachedFile.error
-                  ? 'bg-red-100 border-2 border-red-300'
-                  : 'bg-gray-100'
-              }`}
-            >
-              {attachedFile.preview ? (
-                <Image
-                  src={attachedFile.preview}
-                  alt={attachedFile.file.name}
-                  className='w-12 h-12 object-cover rounded mr-2'
-                />
-              ) : (
-                <div className='w-12 h-12 flex items-center justify-center text-2xl mr-2'>
-                  {getFileIcon(attachedFile.file)}
-                </div>
-              )}
-              <div className='flex-1 min-w-0'>
-                <p className='text-sm font-medium text-gray-900 truncate'>
-                  {attachedFile.file.name}
-                </p>
-                <p className='text-xs text-gray-500'>
-                  {formatFileSize(attachedFile.file.size)}
-                </p>
-                {attachedFile.loading && (
-                  <p className='text-xs text-blue-600'>Uploading...</p>
-                )}
-                {attachedFile.error && (
-                  <div className='flex items-center gap-1'>
-                    <p className='text-xs text-red-600'>{attachedFile.error}</p>
-                    <button
-                      onClick={() => retryUpload(attachedFile.clientId)}
-                      className='text-xs text-blue-600 hover:text-blue-800 underline'
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-                {attachedFile.id &&
-                  !attachedFile.loading &&
-                  !attachedFile.error && (
-                    <p className='text-xs text-green-600'>✓ Uploaded</p>
-                  )}
-              </div>
-              <button
-                type='button'
-                onClick={() => removeFile(attachedFile.clientId)}
-                className='ml-2 text-gray-400 hover:text-gray-600'
-                disabled={attachedFile.loading}
-              >
-                <X size={16} />
-              </button>
-            </div>
-          ))}
+    <div className="w-full px-4 py-4 bg-white border-t border-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center w-full max-w-full"
+        style={{ margin: 0 }}
+      >
+        <div className="flex-1 flex items-center">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={placeholder}
+            disabled={disabled || isUploading}
+            rows={1}
+            className="w-full h-14 px-4 py-0 border-2 border-blue-400 focus:border-blue-500 rounded-2xl outline-none text-lg transition-all duration-200 bg-white placeholder-gray-400 resize-none hide-scrollbar align-middle"
+            style={{
+              minHeight: "56px",
+              maxHeight: "120px",
+              overflow: "hidden",
+              lineHeight: "56px",
+            }}
+            autoComplete="off"
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "56px";
+              target.style.height = Math.min(target.scrollHeight, 120) + "px";
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!disabled && !isUploading && input.trim()) {
+                  handleSubmit(e as any);
+                }
+              }
+            }}
+          />
         </div>
-      )}
-
-      {/* Input form */}
-      <form onSubmit={handleSubmit} className='flex items-center space-x-2'>
         <input
           ref={fileInputRef}
-          type='file'
+          type="file"
           multiple
-          accept='image/*,.pdf,.txt,.doc,.docx'
+          accept="image/*,.pdf,.txt,.doc,.docx"
           onChange={handleFileSelect}
-          className='hidden'
+          className="hidden"
         />
-
         <button
-          type='button'
+          type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || isUploading || isAnyFileUploading}
-          className='p-2 text-gray-500 hover:text-gray-700 disabled:text-gray-300'
-          title='Attach files'
-        >
-          <Paperclip size={20} />
-        </button>
-
-        <input
-          type='text'
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={placeholder}
           disabled={disabled || isUploading}
-          className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed'
-        />
-
-        <button
-          type='submit'
-          disabled={
-            disabled || isUploading || isAnyFileUploading || !hasContent
-          }
-          className='p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors'
+          className="ml-3 w-12 h-12 flex items-center justify-center bg-white border-2 border-blue-400 text-blue-500 hover:bg-blue-50 hover:border-blue-500 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ minWidth: "48px", minHeight: "48px" }}
+          title="Attach files"
         >
-          <Send size={20} />
+          <Paperclip size={22} />
+        </button>
+        <button
+          type="submit"
+          disabled={disabled || isUploading || !input.trim()}
+          className="ml-3 w-12 h-12 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ minWidth: "48px", minHeight: "48px" }}
+        >
+          <Send size={24} />
         </button>
       </form>
     </div>
   );
 };
+
+// Add CSS to hide the scrollbar for textarea
+if (typeof window !== "undefined") {
+  const style = document.createElement("style");
+  style.innerHTML = `
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  `;
+  document.head.appendChild(style);
+}
