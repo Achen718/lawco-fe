@@ -1,62 +1,51 @@
-import { getToken } from './authService';
+import { apiService } from './apiService';
+import { environment } from '@/lib/environment';
+import { tokenService } from './apiService';
 
-const API_URL = 'http://localhost:8000/api';
-
-export interface FileUploadResult {
+export interface FileMetadata {
   id: string;
+  session_id: string;
+  request_id: string;
   original_name: string;
   mimetype: string;
-  size: number;
   internal_id: string;
   internal_name: string;
+  from_agent: boolean;
+  created_at: string;
+  size: number;
 }
 
-export async function uploadFile(file: File): Promise<FileUploadResult> {
-  const token = getToken();
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
-
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const response = await fetch(`${API_URL}/files/upload`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.detail || `Upload failed: ${response.statusText}`
-      );
-    }
-
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error('File upload error:', error);
-    throw error;
-  }
+export interface FileData {
+  file_id: string;
+  session_id: string;
+  request_id: string;
 }
 
-export async function uploadMultipleFiles(
-  files: File[]
-): Promise<FileUploadResult[]> {
-  const uploadPromises = files.map((file) => uploadFile(file));
-  return Promise.all(uploadPromises);
+// File type validation
+export const ALLOWED_FILE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+] as const;
+
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+export function isValidFileType(file: File): boolean {
+  return ALLOWED_FILE_TYPES.includes(
+    file.type as (typeof ALLOWED_FILE_TYPES)[number]
+  );
 }
 
-export function getFileIcon(file: File): string {
-  if (file.type.startsWith('image/')) return '🖼️';
-  if (file.type === 'application/pdf') return '📄';
-  if (file.type === 'text/plain') return '📝';
-  if (file.type.includes('word')) return '📄';
-  return '📎';
+export function isValidFileSize(file: File): boolean {
+  return file.size <= MAX_FILE_SIZE;
 }
 
 export function formatFileSize(bytes: number): string {
@@ -67,24 +56,98 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export function getFileIcon(file: File): string {
+  const type = file.type;
 
-export const ACCEPTED_FILE_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'application/pdf',
-  'text/plain',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-];
+  if (type.startsWith('image/')) return '🖼️';
+  if (type === 'application/pdf') return '📄';
+  if (type.startsWith('text/')) return '📝';
+  if (type.includes('word') || type.includes('document')) return '📄';
+  if (type.includes('sheet') || type.includes('excel')) return '📊';
+  if (type.includes('csv')) return '📊';
 
-export function isValidFileType(file: File): boolean {
-  return ACCEPTED_FILE_TYPES.includes(file.type);
+  return '📎';
 }
 
-export function isValidFileSize(file: File): boolean {
-  return file.size <= MAX_FILE_SIZE;
+export const fileService = {
+  async uploadFile(file: File, requestId?: string, sessionId?: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    if (requestId) {
+      formData.append('request_id', requestId);
+    }
+
+    if (sessionId) {
+      formData.append('session_id', sessionId);
+    }
+
+    const response = await apiService.post<{ id: string }>('/files', formData, {
+      noStingify: true,
+      isFormData: true,
+    });
+
+    return response.data.id;
+  },
+
+  async downloadFile(fileId: string): Promise<{ url: string; fileId: string }> {
+    if (typeof window === 'undefined') {
+      throw new Error('Download not available in SSR environment');
+    }
+
+    const token = tokenService.getToken();
+    const response = await fetch(`${environment.apiBaseUrl}/files/${fileId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Get the blob
+    const blob = await response.blob();
+
+    // Create a download link
+    const url = window.URL.createObjectURL(blob);
+
+    return {
+      url,
+      fileId,
+    };
+  },
+
+  async getFileMetadata(fileId: string) {
+    const response = await apiService.get<FileMetadata>(
+      `/files/${fileId}/metadata`
+    );
+    return response.data;
+  },
+
+  async getFilesByRequestId(sessionId: string) {
+    const response = await apiService.get<FileData[]>('/files', {
+      params: {
+        session_id: sessionId,
+      },
+    });
+    return response.data;
+  },
+
+  async getFileById(id: string) {
+    const response = await apiService.get<unknown>(`/files/${id}`);
+    return response.data;
+  },
+};
+
+// Legacy function for backward compatibility
+export async function uploadFile(
+  file: File
+): Promise<{ id: string; name: string }> {
+  const fileId = await fileService.uploadFile(file);
+  return {
+    id: fileId,
+    name: file.name,
+  };
 }

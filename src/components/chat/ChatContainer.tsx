@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { login, getToken } from '@/services/authService';
+import { authService } from '@/services/authService';
 import { websocketManager } from '@/services/websocketService';
-import { getDefaultModel, ModelConfig } from '@/services/modelService';
-import { uploadFile, FileUploadResult } from '@/services/fileUploadService';
+import { fileService } from '@/services/fileUploadService';
+import { modelService } from '@/services/modelService';
 import { ChatDisplay } from './ChatDisplay';
 import { ChatInput } from './ChatInput';
 import { Message } from '@/types/chat';
@@ -13,103 +13,136 @@ interface UploadResult {
   name: string;
 }
 
-interface FileMetadata {
-  name: string;
-  type: string;
-  size: number;
-}
-
 export function ChatContainer() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [modelConfig, setModelConfig] = useState<ModelConfig | null>(null);
-  const [modelError, setModelError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<
-    Record<string, FileMetadata>
-  >({});
+  const [modelConfig, setModelConfig] = useState<{
+    provider: string;
+    configs: Array<{ name: string }>;
+  } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    'disconnected' | 'connecting' | 'connected'
+  >('disconnected');
 
-  // Effect to automatically log in and connect to WebSocket on component mount
   useEffect(() => {
+    let isMounted = true;
+
     const autoLoginAndConnect = async () => {
-      let token = getToken();
-      if (!token) {
-        console.log('No token found, logging in automatically...');
-        // Input your credentials for AgentOS - change to your own credentials
-        token = await login('username', 'password');
-      }
+      try {
+        console.log('Starting authentication and WebSocket connection...');
 
-      // If we have a token (either from storage or after auto-login), connect
-      if (token) {
-        setIsAuthenticated(true);
-        websocketManager.connect();
-        websocketManager.onMessage((newMessage) => {
-          // Update the messages state when a new message arrives
-          console.log('Received message:', newMessage);
+        // Check if user is already authenticated
+        let user = authService.getCurrentUser();
+        console.log('Current user from storage:', user);
 
-          // Filter out agent logs, only show actual responses
-          if (newMessage.type === 'agent_log') {
-            // Skip log messages
-            return;
+        if (!user) {
+          console.log('No user found, attempting auto-login...');
+          // Input your credentials for AgentOS - change to your own credentials
+          user = await authService.login('achen', '123A45b6c!');
+          console.log('Auto-login successful:', user);
+        }
+
+        // If we have a user (either from storage or after auto-login), connect
+        if (user && isMounted) {
+          console.log('User authenticated, setting up WebSocket connection...');
+          setIsAuthenticated(true);
+          setConnectionStatus('connecting');
+
+          // Generate session ID for this chat session
+          const chatSessionId = `session_${Date.now()}`;
+          setSessionId(chatSessionId);
+          console.log('Generated session ID:', chatSessionId);
+
+          // Connect to WebSocket using your original API
+          await websocketManager.connect();
+          console.log('WebSocket connection initiated');
+          if (isMounted) {
+            setConnectionStatus('connected');
           }
 
-          // Add all messages to the array - let the display component handle the rendering
-          setMessages((prevMessages) => [...prevMessages, newMessage]);
-        });
+          // Set up message handler using your original API
+          websocketManager.onMessage((newMessage: unknown) => {
+            console.log('Received message:', newMessage);
 
-        const fetchModel = async () => {
-          try {
-            const model = await getDefaultModel();
-            console.log('Fetched model configuration:', model);
-            if (model) {
-              console.log('Default model loaded:', model);
-              console.log('Provider:', model.provider, 'Model:', model.model);
-              setModelConfig(model);
-              setModelError(null);
-            } else {
-              const errorMsg =
-                'No model configurations found. Please set up a model configuration first.';
-              console.error(errorMsg);
-              setModelError(errorMsg);
+            // Handle different message types
+            const message = newMessage as {
+              type?: string;
+              [key: string]: unknown;
+            };
+            if (message.type === 'agent_log') {
+              // Skip log messages
+              return;
             }
-          } catch (error) {
-            const errorMsg =
-              'Failed to fetch model configuration: ' +
-              (error as Error).message;
-            console.error(errorMsg);
-            setModelError(errorMsg);
-          }
-        };
 
-        fetchModel();
-      } else {
-        console.error(
-          'Automatic authentication failed. Please check credentials.'
-        );
+            // Add all messages to the array - let the display component handle the rendering
+            if (isMounted) {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                message as Message,
+              ]);
+            }
+          });
+
+          const fetchModel = async () => {
+            try {
+              console.log('Fetching model configurations...');
+              const models = await modelService.getModels();
+              console.log('Fetched model configurations:', models);
+              if (models && models.length > 0) {
+                const firstModel = models[0];
+                if (isMounted) {
+                  setModelConfig(firstModel);
+                }
+                console.log('Set model config:', firstModel);
+              }
+            } catch (error) {
+              console.error('Error fetching model configurations:', error);
+            }
+          };
+
+          await fetchModel();
+        }
+      } catch (error) {
+        console.error('Error during authentication/connection:', error);
+        if (isMounted) {
+          setConnectionStatus('disconnected');
+        }
       }
     };
 
     autoLoginAndConnect();
-  }, []); // The empty dependency array ensures this runs only once on mount
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleFileUpload = async (file: File): Promise<UploadResult> => {
-    setIsUploading(true);
     try {
-      const uploadResult: FileUploadResult = await uploadFile(file);
+      setIsUploading(true);
 
-      // Store file metadata
-      setUploadedFiles((prev) => ({
-        ...prev,
-        [uploadResult.id]: {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        },
-      }));
+      if (!sessionId) {
+        throw new Error('No session ID available');
+      }
 
-      // Return object with id and name
-      return { id: uploadResult.id, name: file.name };
+      const requestId = `request_${Date.now()}`;
+
+      // Upload the file using the file service
+      const uploadResult = await fileService.uploadFile(
+        file,
+        requestId,
+        sessionId
+      );
+      console.log('File uploaded successfully:', uploadResult);
+
+      return {
+        id: uploadResult,
+        name: file.name,
+      };
     } catch (error) {
+      console.error('File upload failed:', error);
       throw error;
     } finally {
       setIsUploading(false);
@@ -117,89 +150,85 @@ export function ChatContainer() {
   };
 
   const handleSendMessage = async (input: string, fileIds?: string[]) => {
-    if ((input.trim() || fileIds?.length) && modelConfig) {
-      // Validate that we have the required fields
-      if (!modelConfig.provider || !modelConfig.model) {
-        console.error('Model configuration is incomplete:', modelConfig);
-        return;
-      }
+    if (!modelConfig) {
+      console.error('No model configuration available');
+      return;
+    }
 
-      // Add user's message to UI immediately for better UX
-      const userMessage = {
+    if (!sessionId) {
+      console.error('No session ID available');
+      return;
+    }
+
+    try {
+      // Create user message
+      const userMessage: Message = {
         type: 'user_message',
-        response: { response: { response: input } },
-        files: fileIds?.map((fileId) => ({
-          id: fileId,
-          name: uploadedFiles[fileId]?.name || fileId,
-          size: uploadedFiles[fileId]?.size || 0,
-        })),
+        data: input,
+        files:
+          fileIds?.map((id) => ({
+            id,
+            name: '',
+            original_name: '',
+            size: 0,
+          })) || [],
       };
 
+      // Add user message to display
       setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-      // Send message with file IDs (matching genai-agentos format)
-      const messageToSend = {
+      // Send message via WebSocket (original simple structure)
+      const wsMessage = {
         message: input,
-        llm_name: modelConfig.name,
+        llm_name: modelConfig.configs?.[0]?.name,
         provider: modelConfig.provider,
         ...(fileIds && fileIds.length > 0 && { files: fileIds }),
       };
 
-      console.log('Sending message with payload:', messageToSend);
-      websocketManager.sendMessage(messageToSend);
-    } else {
-      console.log(
-        'Cannot send message - input:',
-        input.trim(),
-        'fileIds:',
-        fileIds?.length,
-        'modelConfig:',
-        modelConfig
-      );
+      console.log('Sending message via WebSocket:', wsMessage);
+      console.log('Files being sent:', fileIds);
+      websocketManager.sendMessage(wsMessage);
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
 
-  if (!isAuthenticated) {
-    return <div>Connecting and authenticating...</div>;
-  }
-
-  if (modelError) {
-    return (
-      <div>
-        <h1>Chat</h1>
-        <div
-          style={{
-            color: 'red',
-            padding: '20px',
-            border: '1px solid red',
-            borderRadius: '5px',
-          }}
-        >
-          <p>
-            <strong>Configuration Error:</strong>
-          </p>
-          <p>{modelError}</p>
-          <p>
-            Please set up a model configuration through the settings page or
-            contact your administrator.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className='flex flex-col h-full'>
+      {/* Debug Info */}
+      <div className='bg-gray-100 p-2 text-xs font-mono'>
+        <div>
+          Auth: {isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated'}
+        </div>
+        <div>
+          WebSocket:{' '}
+          {connectionStatus === 'connected'
+            ? '✅ Connected'
+            : connectionStatus === 'connecting'
+            ? '🔄 Connecting'
+            : '❌ Disconnected'}
+        </div>
+        <div>Session: {sessionId || 'No session'}</div>
+        <div>
+          Model:{' '}
+          {modelConfig
+            ? `✅ ${modelConfig.configs?.[0]?.name || 'Unknown'}`
+            : '❌ No model'}
+        </div>
+      </div>
+
       <ChatDisplay messages={messages} />
       <ChatInput
         onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}
-        disabled={!modelConfig}
+        disabled={!isAuthenticated || connectionStatus !== 'connected'}
         isUploading={isUploading}
         placeholder={
-          modelConfig
-            ? 'Ask the agent anything...'
-            : 'Loading model configuration...'
+          !isAuthenticated
+            ? 'Authenticating...'
+            : connectionStatus !== 'connected'
+            ? 'Connecting to server...'
+            : 'Type your message...'
         }
       />
     </div>
