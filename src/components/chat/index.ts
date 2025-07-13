@@ -1,4 +1,3 @@
-export { ChatPane } from './ChatPane';
-export { ChatMessage } from './ChatMessage';
-export { ChatInput } from './ChatInput';
-export { TypingIndicator } from './TypingIndicator';
+export { ChatContainer } from './ChatContainer';
+export { ConversationDisplay } from './ChatDisplay';
+export { MessageInput } from './ChatInput';

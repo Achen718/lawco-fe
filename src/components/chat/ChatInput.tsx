@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
+'use client';
+import { useState } from 'react';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -8,46 +7,40 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({
+export const ChatInput = ({
   onSendMessage,
   disabled = false,
   placeholder = 'Type your message...',
-}) => {
-  const [message, setMessage] = useState('');
+}: ChatInputProps) => {
+  const [input, setInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
-      setMessage('');
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
+    if (input.trim() && !disabled) {
+      onSendMessage(input.trim());
+      setInput('');
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className='flex items-end space-x-2 p-4 border-t'
-    >
-      <div className='flex-1'>
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+    <div className='border-t bg-white p-4'>
+      <form onSubmit={handleSubmit} className='flex items-center space-x-2'>
+        <input
+          type='text'
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className='min-h-[60px] max-h-[120px] resize-none'
+          className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed'
         />
-      </div>
-      <Button type='submit' disabled={disabled || !message.trim()}>
-        Send
-      </Button>
-    </form>
+        <button
+          type='submit'
+          disabled={disabled || !input.trim()}
+          className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors'
+        >
+          Send
+        </button>
+      </form>
+    </div>
   );
 };
