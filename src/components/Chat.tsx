@@ -14,12 +14,11 @@ export function ChatComponent() {
   // Effect to automatically log in and connect to WebSocket on component mount
   useEffect(() => {
     const autoLoginAndConnect = async () => {
-      // Check if we already have a valid token
       let token = getToken();
       if (!token) {
-        // If not, log in automatically with your static credentials
         console.log('No token found, logging in automatically...');
-        token = await login('achen', 'Test123!');
+        // Input your credentials for AgentOS - change to your own credentials
+        token = await login('username', 'password');
       }
 
       // If we have a token (either from storage or after auto-login), connect
