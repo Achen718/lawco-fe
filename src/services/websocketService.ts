@@ -1,4 +1,4 @@
-import { getToken } from './authService';
+import { tokenService } from './apiService';
 
 const WEBSOCKET_URL = 'ws://localhost:8000/frontend/ws';
 
@@ -16,10 +16,10 @@ export interface FrontendMessage extends UserMessage {
 
 class WebSocketManager {
   private socket: WebSocket | null = null;
-  private messageHandler: ((message: any) => void) | null = null;
+  private messageHandler: ((message: unknown) => void) | null = null;
 
   async connect() {
-    const token = getToken();
+    const token = tokenService.getToken();
     if (!token) {
       console.error('Authentication token not found. Please log in.');
       return;
@@ -65,7 +65,7 @@ class WebSocketManager {
   }
 
   // Method for UI components to subscribe to messages
-  onMessage(handler: (message: any) => void) {
+  onMessage(handler: (message: unknown) => void) {
     this.messageHandler = handler;
   }
 
