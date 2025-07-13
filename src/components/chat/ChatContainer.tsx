@@ -4,6 +4,7 @@ import { authService } from '@/services/authService';
 import { websocketManager } from '@/services/websocketService';
 import { fileService } from '@/services/fileUploadService';
 import { modelService } from '@/services/modelService';
+import { v4 as uuidv4 } from 'uuid';
 import { ChatDisplay } from './ChatDisplay';
 import { ChatInput } from './ChatInput';
 import { Message } from '@/types/chat';
@@ -120,14 +121,11 @@ export function ChatContainer() {
   }, []);
 
   const handleFileUpload = async (file: File): Promise<UploadResult> => {
+    setIsUploading(true);
     try {
-      setIsUploading(true);
-
-      if (!sessionId) {
-        throw new Error('No session ID available');
-      }
-
-      const requestId = `request_${Date.now()}`;
+      // Generate proper UUIDs for request_id and session_id
+      const requestId = uuidv4();
+      const sessionId = uuidv4();
 
       // Upload the file using the file service
       const uploadResult = await fileService.uploadFile(

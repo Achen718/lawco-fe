@@ -1,6 +1,7 @@
 import { apiService } from './apiService';
 import { environment } from '@/lib/environment';
 import { tokenService } from './apiService';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface FileMetadata {
   id: string;
@@ -74,12 +75,23 @@ export const fileService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    if (requestId) {
-      formData.append('request_id', requestId);
-    }
+    // Only add request_id and session_id if they are provided and are valid UUIDs
+    // Otherwise, let the backend handle the file upload without these parameters
+    if (requestId && sessionId) {
+      // Generate proper UUIDs if the provided ones are not valid UUIDs
+      const validRequestId = requestId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      )
+        ? requestId
+        : uuidv4();
+      const validSessionId = sessionId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      )
+        ? sessionId
+        : uuidv4();
 
-    if (sessionId) {
-      formData.append('session_id', sessionId);
+      formData.append('request_id', validRequestId);
+      formData.append('session_id', validSessionId);
     }
 
     const response = await apiService.post<{ id: string }>('/files', formData, {
