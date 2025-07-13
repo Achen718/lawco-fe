@@ -41,7 +41,7 @@ class AuthService {
       token_type: string;
       refresh_token?: string;
     }>('/api/login/access-token', formData, {
-      noStingify: true,
+      noStringify: true,
       headers: {
         accept: 'application/json',
       },
@@ -75,14 +75,14 @@ class AuthService {
   ): Promise<{
     id: string;
     username: string;
-    created_at: string;
-    updated_at: string;
+    createdAt: string;
+    updatedAt: string;
   }> {
     const response = await apiService.post<{
       id: string;
       username: string;
-      created_at: string;
-      updated_at: string;
+      createdAt: string;
+      updatedAt: string;
     }>('/api/register', {
       username,
       password,

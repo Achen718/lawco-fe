@@ -125,13 +125,13 @@ export function ChatContainer() {
     try {
       // Generate proper UUIDs for request_id and session_id
       const requestId = uuidv4();
-      const sessionId = uuidv4();
+      const fileSessionId = uuidv4();
 
       // Upload the file using the file service
       const uploadResult = await fileService.uploadFile(
         file,
         requestId,
-        sessionId
+        fileSessionId
       );
       console.log('File uploaded successfully:', uploadResult);
 
@@ -193,28 +193,6 @@ export function ChatContainer() {
 
   return (
     <div className='flex flex-col h-full'>
-      {/* Debug Info */}
-      <div className='bg-gray-100 p-2 text-xs font-mono'>
-        <div>
-          Auth: {isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated'}
-        </div>
-        <div>
-          WebSocket:{' '}
-          {connectionStatus === 'connected'
-            ? '✅ Connected'
-            : connectionStatus === 'connecting'
-            ? '🔄 Connecting'
-            : '❌ Disconnected'}
-        </div>
-        <div>Session: {sessionId || 'No session'}</div>
-        <div>
-          Model:{' '}
-          {modelConfig
-            ? `✅ ${modelConfig.configs?.[0]?.name || 'Unknown'}`
-            : '❌ No model'}
-        </div>
-      </div>
-
       <ChatDisplay messages={messages} />
       <ChatInput
         onSendMessage={handleSendMessage}
