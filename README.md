@@ -6,13 +6,12 @@ LawCo AI is an intelligent legal assistant web app that helps users analyze lega
 
 ## 🚀 Features
 
-- **AI Chatbot:** Ask legal questions and get instant answers.
-- **Document Analysis:** Upload legal documents for AI-powered summaries and risk analysis.
-- **Team Section:** Meet the minds behind LawCo AI.
-- **Modern UI:** Responsive, accessible, and visually appealing.
-- **Particles & Animations:** Engaging background effects.
-- **Demo Section:** See LawCo AI in action with sample chat and analysis.
-- **GitHub Integration:** Quick access to the project repository.
+- **AI-Powered Legal Chat:** Instantly ask legal questions and get expert-level answers from the AI assistant.
+- **Document Upload & Analysis:** Upload contracts or legal documents and receive detailed summaries, risk analysis, and recommendations.
+- **Real-Time WebSocket Chat:** Enjoy seamless, real-time conversations with the AI for a smooth user experience.
+- **Legal Document Highlighting:** Key terms and risks are visually highlighted for easy review.
+- **Team Showcase:** Meet the innovators behind LawCo AI in a dedicated team section.
+- **Modern, Responsive UI:** Fully responsive design with beautiful gradients, animations, and accessibility in mind.
 
 ---
 
@@ -96,15 +95,6 @@ src/
   types/              # TypeScript types and interfaces
 public/               # Static assets (SVGs, images)
 ```
-
----
-
-## ⚙️ Customization
-
-- **Particles:** Edit `src/components/ParticlesBackground.tsx` to change background effects.
-- **Team Members:** Update `src/components/TeamSection.tsx` with your real team info.
-- **Demo Content:** Edit `src/components/DemoSection.tsx` for the chat/analysis demo.
-- **Colors & Styles:** Tweak `src/app/globals.css` and Tailwind config for branding.
 
 ---
 
