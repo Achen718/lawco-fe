@@ -1,36 +1,133 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LawCo AI – Frontend
 
-## Getting Started
+LawCo AI is an intelligent legal assistant web app that helps users analyze legal documents, ask legal questions, and get instant AI-powered insights. This is the frontend (React/Next.js) for the LawCo AI platform.
 
-First, run the development server:
+---
+
+## 🚀 Features
+
+- **AI Chatbot:** Ask legal questions and get instant answers.
+- **Document Analysis:** Upload legal documents for AI-powered summaries and risk analysis.
+- **Team Section:** Meet the minds behind LawCo AI.
+- **Modern UI:** Responsive, accessible, and visually appealing.
+- **Particles & Animations:** Engaging background effects.
+- **Demo Section:** See LawCo AI in action with sample chat and analysis.
+- **GitHub Integration:** Quick access to the project repository.
+
+---
+
+## 📸 Screenshots
+
+> _Add your own screenshots here!_
+
+| Home Page                       | AI Chat Demo                    | Team Section                    |
+| ------------------------------- | ------------------------------- | ------------------------------- |
+| ![Home](./screenshots/home.png) | ![Demo](./screenshots/demo.png) | ![Team](./screenshots/team.png) |
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** [Next.js](https://nextjs.org/) (React)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Particles:** [react-tsparticles](https://particles.js.org/)
+- **Other:** TypeScript, modern CSS, and more
+
+---
+
+## 📦 Dependencies
+
+Install all dependencies with:
+
+```bash
+npm install
+```
+
+Key dependencies:
+
+- `next`
+- `react`
+- `react-dom`
+- `tailwindcss`
+- `lucide-react`
+- `react-tsparticles`
+- `tsparticles`
+
+See `package.json` for the full list.
+
+---
+
+## 🖥️ Getting Started
+
+### 1. **Clone the repository**
+
+```bash
+git clone https://github.com/your-org/your-repo.git
+cd your-repo
+```
+
+### 2. **Install dependencies**
+
+```bash
+npm install
+```
+
+### 3. **Run the development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🗂️ Project Structure
 
-## Learn More
+```
+src/
+  app/                # Next.js app directory (pages, layout, etc.)
+  components/         # Reusable React components (Chat, TeamSection, DemoSection, etc.)
+  contexts/           # React context providers
+  hooks/              # Custom React hooks
+  lib/                # Utility functions and constants
+  services/           # API and business logic services
+  types/              # TypeScript types and interfaces
+public/               # Static assets (SVGs, images)
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ⚙️ Customization
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Particles:** Edit `src/components/ParticlesBackground.tsx` to change background effects.
+- **Team Members:** Update `src/components/TeamSection.tsx` with your real team info.
+- **Demo Content:** Edit `src/components/DemoSection.tsx` for the chat/analysis demo.
+- **Colors & Styles:** Tweak `src/app/globals.css` and Tailwind config for branding.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🤝 Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork this repo
+2. Create your feature branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/YourFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+[MIT](./LICENSE)
+
+---
+
+## 📬 Contact
+
+For questions, feedback, or support, open an issue or contact the team at [your-email@example.com].
+
+---
+
+> _Happy coding!_
