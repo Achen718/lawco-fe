@@ -322,13 +322,3 @@ export const ChatInput = ({
     </div>
   );
 };
-
-// Add CSS to hide the scrollbar for textarea
-if (typeof window !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = `
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-  `;
-  document.head.appendChild(style);
-}
