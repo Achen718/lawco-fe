@@ -55,33 +55,6 @@ Key dependencies:
 
 See `package.json` for the full list.
 
----
-
-## 🖥️ Getting Started
-
-### 1. **Clone the repository**
-
-```bash
-git clone https://github.com/your-org/your-repo.git
-cd your-repo
-```
-
-### 2. **Install dependencies**
-
-```bash
-npm install
-```
-
-### 3. **Run the development server**
-
-```bash
-npm run dev
-```
-
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
 ## 🗂️ Project Structure
 
 ```
