@@ -1,6 +1,6 @@
-# LawCo AI – Frontend
+# LawCo – Frontend
 
-LawCo AI is an intelligent legal assistant web app that helps users analyze legal documents, ask legal questions, and get instant AI-powered insights. This frontend connects to an AgentOS backend to provide real-time AI conversations and document analysis.
+LawCo is an intelligent legal assistant web app that helps users analyze legal documents, ask legal questions, and get instant AI-powered insights. This frontend connects to an AgentOS backend to provide real-time AI conversations and document analysis.
 
 ---
 
